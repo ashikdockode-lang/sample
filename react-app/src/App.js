@@ -1,15 +1,36 @@
-import React, { useState } from "react";
-import "./App.css";
+import React, { useState, useEffect } from 'react';
+import './App.css';
 
 function App() {
-  const [pingResponse, setPingResponse] = useState("");
+  const [pingResponse, setPingResponse] = useState('');
   const backendPort = process.env.REACT_APP_BACKEND_PORT || 5001;
+  const [toast, setToast] = useState({ message: '', type: '' });
+
+  useEffect(() => {
+    if (toast.message) {
+      const timer = setTimeout(() => {
+        setToast({ message: '', type: '' });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const handlePingClick = () => {
     fetch(`http://localhost:${backendPort}/ping`)
-      .then((response) => response.json())
-      .then((data) => setPingResponse(data.message))
-      .catch((error) => console.error("Error:", error));
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setPingResponse(data.message);
+        setToast({ message: 'Successfully pinged the backend!', type: 'success' });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        setToast({ message: 'Failed to ping the backend.', type: 'error' });
+      });
   };
 
   return (
@@ -28,6 +49,13 @@ function App() {
           </div>
         </div>
       </div>
+      {toast.message && (
+        <div className="toast toast-end">
+          <div className={`alert alert-${toast.type}`}>
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
