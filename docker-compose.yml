@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  backend:
+    build: ./flask-app
+    ports:
+      - "8000:8000"
+  frontend:
+    build:
+      context: ./react-app
+      args:
+        REACT_APP_BACKEND_PORT: 8000
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
